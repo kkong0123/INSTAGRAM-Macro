@@ -21,7 +21,7 @@ def craw_main():
         else:
             driver = webdriver.Chrome('./chromedriver',options=options)
             
-        url = 'https://www.instagram.com/accounts/login/'
+        url = 'https://www.instagram.com/accounts/login/'   
         driver.get(url)
         driver.implicitly_wait(15)
 
@@ -39,7 +39,7 @@ def login(): # 로그인 함수
     time.sleep(5)
 
 def search():
-    url = 'https://www.instagram.com/explore/tags/' + str("맞팔")
+    url = 'https://www.instagram.com/explore/tags/' + str("")
     driver.get(url)
     driver.implicitly_wait(15)
     time.sleep(5)
@@ -55,6 +55,7 @@ def search():
     # 인기게시물 건너뛰기
     for i in range(9):
         driver.find_element_by_css_selector(".l8mY4 .wpO6b").click()
+        print("{0} 건너뛰기".format(i))
         driver.implicitly_wait(15)
         time.sleep(5)
 
@@ -77,37 +78,59 @@ def search():
         ]
         random_message = random_message[randint(0,3)]
 
+        ######
+        # time.sleep(random.uniform(60,80))
+        ######
+
         driver.find_element_by_css_selector(".fr66n .wpO6b").click() # 좋아요 누르기
         print("{} Liked".format(i))
         time.sleep(random.uniform(3,6))
 
-        try: # 댓글 남기기
-            driver.find_element_by_css_selector(".X7cDz").click()
-            time.sleep(random.uniform(1,5))
-            driver.find_element_by_css_selector(".Ypffh").send_keys(random_message)
-            time.sleep(random.uniform(1,5))
-            driver.find_element_by_css_selector(".gtFbE").click()
-            driver.implicitly_wait(15)
-            time.sleep(random.uniform(4,6))
-        except Exception:
-            pass
+        # try: # 댓글 남기기
+        #     driver.find_element_by_css_selector(".X7cDz").click()
+        #     time.sleep(random.uniform(1,5))
+        #     driver.find_element_by_css_selector(".Ypffh").send_keys(random_message)
+        #     time.sleep(random.uniform(1,5))
+
+        #     ######
+        #     time.sleep(random.uniform(60,80))
+        #     ######
+
+            # driver.find_element_by_css_selector(".gtFbE").click()
+            # print("{0} text".format(i))
+
+        #     driver.implicitly_wait(15)
+        #     time.sleep(random.uniform(4,6))
+        # except Exception:
+        #     pass
 
         # 팔로우 하기
-        try:
-            driver.find_element_by_css_selector(".bY2yH .T0kll").click()
-            time.sleep(random.uniform(7,12))
-        except Exception:
-            pass
-        
+
+        ######
+        # time.sleep(random.uniform(60,80))
+        ######
+
+        driver.find_element_by_css_selector(".bY2yH .T0kll").click()
+        print("{0} follow".format(i))
+        time.sleep(random.uniform(7,12))
+
+
         # 다음 버튼 누르기
         try:
             driver.find_element_by_css_selector(".l8mY4 .wpO6b").click()
+            print("{0} next".format(i))
             driver.implicitly_wait(30)
             time.sleep(random.uniform(3,6))
+
         except Exception:
-            driver.find_element_by_css_selector(".l8mY4 .wpO6b").click()
+            driver.find_element_by_css_selector("body > div.RnEpo.Yx5HN > div > div > div > div.mt3GC > button.aOOlW.-Cab_").click()
+            print("팔로우 취소")
             driver.implicitly_wait(10)
             time.sleep(random.uniform(2,6))
+            driver.find_element_by_css_selector(".l8mY4 .wpO6b").click()
+            print("{0} next".format(i))
+            driver.implicitly_wait(10)
+            time.sleep(random.uniform(3,6))
 
 def unfollow():
     url = 'https://www.instagram.com/' + str("") 
