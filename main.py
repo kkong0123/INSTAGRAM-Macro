@@ -13,8 +13,8 @@ from selenium.webdriver.support import expected_conditions as EC
 def craw_main():
         global driver
         options = webdriver.ChromeOptions()
-        # 창 숨기는 옵션 추가
         # options.add_argument("headless")
+
         if getattr(sys, 'frozen', False):
             chromedriver_path = os.path.join(sys._MEIPASS, "./chromedriver")
             driver = webdriver.Chrome(chromedriver_path, options=options)
@@ -61,76 +61,80 @@ def search():
 
     for i in range(300):
 
-        if (i+1) % 9 == 0: # 메크로 아닌척 (좋아요 - 댓글 - 팔로우 중간중간에 넣어야할듯)
-            time.sleep(random.uniform(10,20))
-            print("쉬어가기 {}".format(i+1))
-
-        if (i+1) % 15 == 0:
+        if (i+1) % 15 == 0: # 쉬어가기
             time.sleep(random.uniform(7,15))
-            print("쉬어가기 {}".format(i+1))
+            print("쉬어가기, 누적 반복수: {}".format(i))
 
         # 랜덤 메시지
         random_message = [
             "잘 보고갑니다! : )",
             "피드 잘 보고갑니다! :D",
             "피드 구경 잘 하고갑니다! : ) ",
-            "게시물 잘보고갑니당! :)"
+            "게시물 잘보고갑니당! :)",
+            "잘 보고갑니당! 맞팔해요!:D",
+            "피드 구경 잘 하고 갑니다! 맞팔해용 :)",
+            "피드가 너무 예뻐요 :) 맞팔해요!",
+            "게시물 잘보고갑니당! 맞팔해요 :D"
         ]
-        random_message = random_message[randint(0,3)]
+        random_message = random_message[randint(0,7)]
 
-        ######
-        # time.sleep(random.uniform(60,80))
-        ######
+        #####
+        time.sleep(random.uniform(60,80))
+        #####
 
         driver.find_element_by_css_selector(".fr66n .wpO6b").click() # 좋아요 누르기
         print("{} Liked".format(i))
         time.sleep(random.uniform(3,6))
+        
+        if (i+1) % 9 == 0: # 쉬어가기
+            time.sleep(random.uniform(10,20))
+            print("쉬어가기, 누적 반복수: {}".format(i))
 
-        # try: # 댓글 남기기
-        #     driver.find_element_by_css_selector(".X7cDz").click()
-        #     time.sleep(random.uniform(1,5))
-        #     driver.find_element_by_css_selector(".Ypffh").send_keys(random_message)
-        #     time.sleep(random.uniform(1,5))
+        try: # 댓글 남기기
+            driver.find_element_by_css_selector(".X7cDz").click()
+            time.sleep(random.uniform(1,5))
+            driver.find_element_by_css_selector(".Ypffh").send_keys(random_message)
+            time.sleep(random.uniform(1,5))
 
-        #     ######
-        #     time.sleep(random.uniform(60,80))
-        #     ######
+            ######
+            time.sleep(random.uniform(60,80))
+            ######
 
-            # driver.find_element_by_css_selector(".gtFbE").click()
-            # print("{0} text".format(i))
+            driver.find_element_by_css_selector(".gtFbE").click()
+            print("{0} text".format(i+1))
 
-        #     driver.implicitly_wait(15)
-        #     time.sleep(random.uniform(4,6))
-        # except Exception:
-        #     pass
+            driver.implicitly_wait(15)
+            time.sleep(random.uniform(4,6))
+        except Exception:
+            pass
 
         # 팔로우 하기
-
-        ######
-        # time.sleep(random.uniform(60,80))
-        ######
+        #####
+        time.sleep(random.uniform(60,80))
+        #####
 
         driver.find_element_by_css_selector(".bY2yH .T0kll").click()
-        print("{0} follow".format(i))
+        print("{0} follow".format(i+1))
         time.sleep(random.uniform(7,12))
-
 
         # 다음 버튼 누르기
         try:
             driver.find_element_by_css_selector(".l8mY4 .wpO6b").click()
-            print("{0} next".format(i))
+            print("{0} next".format(i+1))
             driver.implicitly_wait(30)
             time.sleep(random.uniform(3,6))
 
-        except Exception:
+        except Exception: # 팔로잉 한 사람을 만났을 때
             driver.find_element_by_css_selector("body > div.RnEpo.Yx5HN > div > div > div > div.mt3GC > button.aOOlW.-Cab_").click()
             print("팔로우 취소")
             driver.implicitly_wait(10)
             time.sleep(random.uniform(2,6))
             driver.find_element_by_css_selector(".l8mY4 .wpO6b").click()
-            print("{0} next".format(i))
+            print("{0} next".format(i+1))
             driver.implicitly_wait(10)
             time.sleep(random.uniform(3,6))
+
+
 
 def unfollow():
     url = 'https://www.instagram.com/' + str("") 
