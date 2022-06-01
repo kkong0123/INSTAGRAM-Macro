@@ -13,6 +13,11 @@ from selenium.webdriver.support import expected_conditions as EC
 def craw_main():
         global driver
         options = webdriver.ChromeOptions()
+        # options.add_argument('--no-sandbox')
+        # options.add_argument('--disable-dev-shm-usage')
+        # options.add_argument("--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5376e Safari/8536.25")
+        # options.add_argument("--start-maximized")
+        # 창 숨기는 옵션 추가
         # options.add_argument("headless")
 
         if getattr(sys, 'frozen', False):
@@ -31,17 +36,22 @@ def craw_main():
 
 def login(): # 로그인 함수
     driver.find_element_by_css_selector(".-MzZI:nth-child(1) .zyHYP").send_keys("")
+    print("id 입력 완료")
     time.sleep(random.uniform(2,5))
     driver.find_element_by_css_selector(".-MzZI+ .-MzZI .zyHYP").send_keys("")
+    print("password 입력 완료")
     time.sleep(random.uniform(2,5))
     driver.find_element_by_css_selector(".-MzZI+ .DhRcB").click()
     driver.implicitly_wait(15)
     time.sleep(5)
+    print("로그인 성공")
+
 
 def search():
     url = 'https://www.instagram.com/explore/tags/' + str("")
     driver.get(url)
     driver.implicitly_wait(15)
+    print("해시태그 검색 중..")
     time.sleep(5)
 
     pic_list = driver.find_elements_by_css_selector("._9AhH0")
@@ -55,7 +65,7 @@ def search():
     # 인기게시물 건너뛰기
     for i in range(9):
         driver.find_element_by_css_selector(".l8mY4 .wpO6b").click()
-        print("{0} 건너뛰기".format(i))
+        print("{0}번째 인기 게시물 건너뛰기".format(i+1))
         driver.implicitly_wait(15)
         time.sleep(5)
 
@@ -66,7 +76,7 @@ def search():
             print("쉬어가기, 누적 반복수: {}".format(i))
 
         # 랜덤 메시지
-        random_message = [
+        random_message = [  
             "잘 보고갑니다! : )",
             "피드 잘 보고갑니다! :D",
             "피드 구경 잘 하고갑니다! : ) ",
@@ -82,9 +92,23 @@ def search():
         time.sleep(random.uniform(60,80))
         #####
 
-        driver.find_element_by_css_selector(".fr66n .wpO6b").click() # 좋아요 누르기
-        print("{} Liked".format(i))
-        time.sleep(random.uniform(3,6))
+        try:
+            driver.find_element_by_css_selector(".fr66n .wpO6b").click() # 좋아요 누르기
+            print("{}번째 좋아요".format(i+1))
+            time.sleep(random.uniform(3,6))
+        except Exception:
+                driver.find_element_by_css_selector(".l8mY4 .wpO6b").click()
+                print("로딩 오류 발생, 다음 게시물 이동 중..\n =======================================")
+                driver.implicitly_wait(30)
+                time.sleep(random.uniform(3,6))
+
+                #####
+                time.sleep(random.uniform(60,80))
+                #####
+
+                driver.find_element_by_css_selector(".fr66n .wpO6b").click() # 좋아요 누르기
+                print("{}번째 좋아요".format(i+1))
+                time.sleep(random.uniform(3,6))
         
         if (i+1) % 9 == 0: # 쉬어가기
             time.sleep(random.uniform(10,20))
@@ -101,40 +125,38 @@ def search():
             ######
 
             driver.find_element_by_css_selector(".gtFbE").click()
-            print("{0} text".format(i+1))
-
+            print("{0}번째 댓글입력: {1}".format(i+1, random_message))
             driver.implicitly_wait(15)
             time.sleep(random.uniform(4,6))
         except Exception:
             pass
 
         # 팔로우 하기
+        
         #####
         time.sleep(random.uniform(60,80))
         #####
 
         driver.find_element_by_css_selector(".bY2yH .T0kll").click()
-        print("{0} follow".format(i+1))
+        print("{0}번째 팔로우".format(i+1))
         time.sleep(random.uniform(7,12))
 
         # 다음 버튼 누르기
         try:
             driver.find_element_by_css_selector(".l8mY4 .wpO6b").click()
-            print("{0} next".format(i+1))
+            print("다음 게시물 이동 중..\n =======================================")
             driver.implicitly_wait(30)
             time.sleep(random.uniform(3,6))
 
         except Exception: # 팔로잉 한 사람을 만났을 때
             driver.find_element_by_css_selector("body > div.RnEpo.Yx5HN > div > div > div > div.mt3GC > button.aOOlW.-Cab_").click()
-            print("팔로우 취소")
+            print("팔로우 취소 완료")
             driver.implicitly_wait(10)
             time.sleep(random.uniform(2,6))
             driver.find_element_by_css_selector(".l8mY4 .wpO6b").click()
-            print("{0} next".format(i+1))
+            print("다음 게시물 이동 중..\n =======================================")
             driver.implicitly_wait(10)
             time.sleep(random.uniform(3,6))
-
-
 
 def unfollow():
     url = 'https://www.instagram.com/' + str("") 
