@@ -15,18 +15,34 @@ form_class = uic.loadUiType(base_dir + "//insta.ui")[0]
 #화면을 띄우는데 사용되는 Class 선언
 class WindowClass(QMainWindow, form_class) :
     def __init__(self) :
+        global random_message_lst
+        random_message_lst = []
+
         super().__init__()
         self.setupUi(self)
         self.start_pushButton.clicked.connect(self.main)
+        self.pushButton_add.clicked.connect(self.appendList)
+        self.pushButton_del.clicked.connect(self.delList)
+
+        self.pushButton_add.setEnabled(False)
+        self.pushButton_del.setEnabled(False)
+        self.lineEdit_message.setEnabled(False)
+
+
+        self.checkBox_comment.stateChanged.connect(self.buttonStat)
+        self.checkBox_like.stateChanged.connect(self.buttonStat)
+        self.checkBox_follow.stateChanged.connect(self.buttonStat)
+        self.checkBox_comment.stateChanged.connect(self.buttonStat)        
+        
+
 
 
     def main(self):
         global instagram_id
         global instagram_pwd
         global search_tag
-        # global driver
         global start_time
-
+       
 ##################################################
 
         instagram_id = self.lineEdit_id.text()
@@ -42,33 +58,84 @@ class WindowClass(QMainWindow, form_class) :
 
         login()
         search()
+
         global i_cnt
         for i_cnt in range(400):
-           
-            follow_text = driver.find_element_by_css_selector("._aar2 ._aade").text
-            if follow_text == "팔로우":
-                like()
-                comment()
-                follow()
-                # 다음 버튼 누르기
-                driver.find_element_by_css_selector("._aaqg ._abl-").click()
-                print('[' + time.strftime('%H:%M:%S') + ']' ,"다음 게시물 이동 중..\n =======================================")
-                print("======= 총 경과시간 =======")
-                print(elapsedTime())
-                driver.implicitly_wait(30)
-                time.sleep(random.uniform(3,6))
+            try:
+                follow_text = driver.find_element_by_css_selector("._aar2 ._aade").text
+                if follow_text == "팔로우":
+                    self.likeEnable()
+                    self.commentEnable()
+                    self.followEnable()
+                    # like()
+                    # comment()
+                    # follow()
+                    # 다음 버튼 누르기
+                    driver.find_element_by_css_selector("._aaqg ._abl-").click()
+                    print('[' + time.strftime('%H:%M:%S') + ']' ,"다음 게시물 이동 중..\n =======================================")
+                    print("======= 총 경과시간 =======")
+                    print(elapsedTime())
+                    driver.implicitly_wait(30)
+                    time.sleep(random.uniform(3,6))
 
-            else:
-                print('[' + time.strftime('%H:%M:%S') + ']' ,"[이미 팔로우한 유저입니다]\n{0}번째 작업 건너뛰기".format(i_cnt+1))
+                else:
+                    print('[' + time.strftime('%H:%M:%S') + ']' ,"[이미 팔로우한 유저입니다]\n{0}번째 작업 건너뛰기".format(i_cnt+1))
+                    time.sleep(random.uniform(3,6))
+                    driver.find_element_by_css_selector("._aaqg ._abl-").click()
+                    print('[' + time.strftime('%H:%M:%S') + ']' ,"다음 게시물 이동 중..\n =======================================")
+                    print("======= 총 경과시간 =======")
+                    print(elapsedTime())            
+                    driver.implicitly_wait(30)
+                    time.sleep(random.uniform(3,6))
+
+            except Exception:
                 time.sleep(random.uniform(3,6))
                 driver.find_element_by_css_selector("._aaqg ._abl-").click()
-                print('[' + time.strftime('%H:%M:%S') + ']' ,"다음 게시물 이동 중..\n =======================================")
-                print("======= 총 경과시간 =======")
-                print(elapsedTime())            
-                driver.implicitly_wait(30)
-                time.sleep(random.uniform(3,6))
+                print('[' + time.strftime('%H:%M:%S') + ']' ,"로딩 오류 발생, 다음 게시물 이동 중..\n =======================================")
+                driver.implicitly_wait(30)   
 
-        
+                # #####
+                # time.sleep(random.uniform(60,80))
+                # #####
+
+    def appendList(self):
+        random_message_lst.append(self.lineEdit_message.text())
+        self.listWidget.addItem(self.lineEdit_message.text())
+        self.lineEdit_message.clear()
+        print(random_message_lst)
+
+    def delList(self):
+        del_index = self.listWidget.currentRow()
+        del random_message_lst[del_index]
+        self.listWidget.takeItem(del_index)
+        print(random_message_lst)
+
+    def buttonStat(self):
+        if self.checkBox_comment.isChecked():
+            self.pushButton_add.setEnabled(True)
+            self.pushButton_del.setEnabled(True)
+            self.lineEdit_message.setEnabled(True)
+        else:
+            self.pushButton_add.setEnabled(False)
+            self.pushButton_del.setEnabled(False)
+            self.lineEdit_message.setEnabled(False)
+
+    def likeEnable(self):
+        if self.checkBox_like.isChecked():
+            return like()
+        else:
+            pass
+    def commentEnable(self):
+        if self.checkBox_comment.isChecked():
+            return comment()
+        else:
+            pass
+    def followEnable(self):
+        if self.checkBox_follow.isChecked():
+            return follow()
+        else:
+            pass
+
 def login():
     global driver
     if getattr(sys, 'frozen', False):
@@ -142,7 +209,7 @@ def comment():
     # #####
     # time.sleep(random.uniform(60,90))
     # #####
-
+    time.sleep(random.uniform(10,11))
     random_message = randomMessage() # 랜덤메시지 함수 리턴값 가져오기
 
     driver.find_element_by_css_selector("._aaoc").send_keys(random_message)
@@ -168,19 +235,25 @@ def follow():
 
 def randomMessage():
 
-    random_message = [  
-    "잘 보고갑니다! : )",
-    "피드 잘 보고갑니다! :D",
-    "피드 구경 잘 하고갑니다! : ) ",
-    "게시물 잘보고갑니당! :)",
-    "잘 보고갑니당! 맞팔해요!:D",
-    "피드 구경 잘 하고 갑니다! 맞팔해용 :)",
-    "피드가 너무 예뻐요 :) 맞팔해요!",
-    "게시물 잘보고갑니당! 맞팔해요 :D"
-    ]
+    # random_message_lst = [  
+    # "잘 보고갑니다! : )",
+    # "피드 잘 보고갑니다! :D",
+    # "피드 구경 잘 하고갑니다! : ) ",
+    # "게시물 잘보고갑니당! :)",
+    # "잘 보고갑니당! 맞팔해요!:D",
+    # "피드 구경 잘 하고 갑니다! 맞팔해용 :)",
+    # "피드가 너무 예뻐요 :) 맞팔해요!",
+    # "게시물 잘보고갑니당! 맞팔해요 :D"
+    # ]
+    if len(random_message_lst) == 1:
+        random_message = random_message_lst[0]
+    else:
+        random_message = random_message_lst[randint(0,len(random_message_lst)-1)]
 
-    random_message = random_message[randint(0,7)]
     return random_message
+
+
+
 
 def elapsedTime(): # 경과시간 정보 함수
     elapsed_time = time.time() - start_time
