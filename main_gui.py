@@ -1,3 +1,4 @@
+import traceback
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout
 from selenium import webdriver
 from random import randint
@@ -15,15 +16,32 @@ form_class = uic.loadUiType(base_dir + "//insta.ui")[0]
 #화면을 띄우는데 사용되는 Class 선언
 class WindowClass(QMainWindow, form_class) :
     def __init__(self) :
+        # global likeStat
+        # global commentStat
+        # global followStat
+        # self.likeStat = likeStat
+        # self.commentStat = commentStat
+        # self.followStat = followStat
+        global likeStat
+        global commentStat
+        global followStat
+
+        likeStat = 0
+        commentStat = 0
+        followStat = 0
+
         global random_message_lst
         random_message_lst = []
 
         super().__init__()
         self.setupUi(self)
+        global textBrowser
+        textBrowser = self.textBrowser
+
         self.start_pushButton.clicked.connect(self.main)
         self.pushButton_add.clicked.connect(self.appendList)
         self.pushButton_del.clicked.connect(self.delList)
-
+        
         self.pushButton_add.setEnabled(False)
         self.pushButton_del.setEnabled(False)
         self.lineEdit_message.setEnabled(False)
@@ -33,29 +51,25 @@ class WindowClass(QMainWindow, form_class) :
         self.checkBox_like.stateChanged.connect(self.buttonStat)
         self.checkBox_follow.stateChanged.connect(self.buttonStat)
         self.checkBox_comment.stateChanged.connect(self.buttonStat)        
-        
-
-
 
     def main(self):
         global instagram_id
         global instagram_pwd
         global search_tag
         global start_time
-       
+        global delay_time
 ##################################################
 
         instagram_id = self.lineEdit_id.text()
         instagram_pwd = self.lineEdit_pw.text()
         search_tag = self.lineEdit_tag.text()
-
+        delay_time = self.lineEdit_delay.text()
         print(instagram_id)
         print(instagram_pwd)
         print(search_tag)
 ##################################################
 
         start_time = time.time() # 시작시간
-
         login()
         search()
 
@@ -88,15 +102,16 @@ class WindowClass(QMainWindow, form_class) :
                     driver.implicitly_wait(30)
                     time.sleep(random.uniform(3,6))
 
-            except Exception:
+            except Exception as e:
                 time.sleep(random.uniform(3,6))
                 driver.find_element_by_css_selector("._aaqg ._abl-").click()
                 print('[' + time.strftime('%H:%M:%S') + ']' ,"로딩 오류 발생, 다음 게시물 이동 중..\n =======================================")
+                print("[오류 메시지]", traceback.format_exc())
                 driver.implicitly_wait(30)   
 
-                # #####
-                # time.sleep(random.uniform(60,80))
-                # #####
+                #####
+                time.sleep(random.uniform(60,80))
+                #####
 
     def appendList(self):
         random_message_lst.append(self.lineEdit_message.text())
@@ -119,22 +134,33 @@ class WindowClass(QMainWindow, form_class) :
             self.pushButton_add.setEnabled(False)
             self.pushButton_del.setEnabled(False)
             self.lineEdit_message.setEnabled(False)
-
+            
     def likeEnable(self):
         if self.checkBox_like.isChecked():
+            self.likeStat = 1
             return like()
         else:
             pass
+            
     def commentEnable(self):
         if self.checkBox_comment.isChecked():
+            self.commentStat = 1
             return comment()
         else:
             pass
+            
     def followEnable(self):
         if self.checkBox_follow.isChecked():
+            self.followStat = 1
             return follow()
         else:
-            pass
+            pass            
+
+def logMsg(msg):
+    print(msg)
+    textBrowser.append(msg)
+    QApplication.processEvents()
+    
 
 def login():
     global driver
@@ -150,15 +176,22 @@ def login():
     print(elapsedTime())
 
     driver.find_element_by_css_selector(".-MzZI:nth-child(1) .zyHYP").send_keys(instagram_id)
-    print('[' + time.strftime('%H:%M:%S') + ']' ,"id 입력 완료")
+
+    logMsg('[' + time.strftime('%H:%M:%S') + '] ' + "id 입력 완료")
+    # QApplication.processEvents()
+
     time.sleep(random.uniform(10,15))
     driver.find_element_by_css_selector(".-MzZI+ .-MzZI .zyHYP").send_keys(instagram_pwd)
-    print('[' + time.strftime('%H:%M:%S') + ']' ,"password 입력 완료") 
+
+    logMsg('[' + time.strftime('%H:%M:%S') + '] ' + "password 입력 완료")
+
     time.sleep(random.uniform(5,10))
     driver.find_element_by_css_selector(".-MzZI+ .DhRcB").click()
     driver.implicitly_wait(15)
     time.sleep(5)
-    print('[' + time.strftime('%H:%M:%S') + ']' ,"로그인 성공")
+
+    logMsg('[' + time.strftime('%H:%M:%S') + '] ' + "로그인 성공")
+    QApplication.processEvents()
 
     ###
     print("== 경과시간 ==")
@@ -172,7 +205,7 @@ def search():
     url = 'https://www.instagram.com/explore/tags/' + search_tag
     driver.get(url)
     driver.implicitly_wait(15)
-    print('[' + time.strftime('%H:%M:%S') + ']' ,"해시태그 검색 중..")
+    logMsg('[' + time.strftime('%H:%M:%S') + '] ' + "해시태그 검색 중..")
     time.sleep(5)
 
     pic_list = driver.find_elements_by_css_selector("._aagw , ._aanf:nth-child(1) ._a6hd")
@@ -186,7 +219,7 @@ def search():
     # 인기게시물 건너뛰기
     for i in range(9):
         driver.find_element_by_css_selector("._aaqg ._abl-").click()
-        print('[' + time.strftime('%H:%M:%S') + ']' ,"{0}번째 인기 게시물 건너뛰기".format(i+1))
+        logMsg('[' + time.strftime('%H:%M:%S') + '] ' + "{0}번째 인기 게시물 건너뛰기".format(i+1))
         driver.implicitly_wait(15)
         time.sleep(5)
 
@@ -196,31 +229,32 @@ def like():
     # #####
     # time.sleep(random.uniform(60,80))
     # #####
-
+    delayTime()
     driver.find_element_by_css_selector("._aamw ._abl-").click() # 좋아요 누르기
-    print('[' + time.strftime('%H:%M:%S') + ']' ,"{}번째 좋아요".format(i_cnt+1))
+    logMsg('[' + time.strftime('%H:%M:%S') + '] ' + "{}번째 좋아요".format(i_cnt+1))
     time.sleep(random.uniform(3,6))
 
 def comment():
 
     driver.find_element_by_css_selector("._aaoc").click()
-    time.sleep(random.uniform(1,5))
+    time.sleep(random.uniform(5,10))
 
     # #####
     # time.sleep(random.uniform(60,90))
     # #####
-    time.sleep(random.uniform(10,11))
+
     random_message = randomMessage() # 랜덤메시지 함수 리턴값 가져오기
 
     driver.find_element_by_css_selector("._aaoc").send_keys(random_message)
-    time.sleep(random.uniform(1,5))
+
+    delayTime()
 
     # ######
     # time.sleep(random.uniform(60,80))
     # ######
 
     driver.find_element_by_css_selector("._aad0").click()
-    print('[' + time.strftime('%H:%M:%S') + ']' ,"{0}번째 댓글입력: {1}".format(i_cnt+1, random_message))
+    logMsg('[' + time.strftime('%H:%M:%S') + '] ' + "{0}번째 댓글입력: {1}".format(i_cnt+1, random_message))
     driver.implicitly_wait(15)
     time.sleep(random.uniform(4,6))
 
@@ -229,8 +263,10 @@ def follow():
     # time.sleep(random.uniform(60,80))
     # #####
 
+    delayTime()
+
     driver.find_element_by_css_selector("._aar2 ._aade").click()
-    print('[' + time.strftime('%H:%M:%S') + ']' ,"{0}번째 팔로우".format(i_cnt+1))
+    logMsg('[' + time.strftime('%H:%M:%S') + '] ' + "{0}번째 팔로우".format(i_cnt+1))
     time.sleep(random.uniform(7,12))
 
 def randomMessage():
@@ -253,6 +289,16 @@ def randomMessage():
     return random_message
 
 
+def delayTime():
+    if likeStat + commentStat + followStat == 3:
+        print("3개 다 체크됨")
+        time.sleep(random.uniform(int(delay_time) / 3, int(delay_time) / 3 + 30))
+    elif likeStat + commentStat + followStat == 2:
+        print("2개 체크")
+        time.sleep(random.uniform(int(delay_time) / 2, int(delay_time) / 2 + 30))
+    else:
+        print("1개 체크")
+        time.sleep(random.uniform(int(delay_time), int(delay_time) + 30))
 
 
 def elapsedTime(): # 경과시간 정보 함수
@@ -273,8 +319,8 @@ def elapsedTime(): # 경과시간 정보 함수
     if m > 0:
         mtime = str(int(m)) + "분 "
     else:
-        mtime = ""     
 
+        mtime = ""     
     strTime = dtime + htime + mtime + str(int(s)) + "초"    
     return strTime 
 
@@ -283,3 +329,4 @@ if __name__ == "__main__" :
     myWindow = WindowClass() 
     myWindow.show()
     app.exec_()
+
