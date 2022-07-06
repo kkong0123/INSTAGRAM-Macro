@@ -1,3 +1,4 @@
+from operator import truediv
 import traceback
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout
 from selenium import webdriver
@@ -15,21 +16,8 @@ form_class = uic.loadUiType(base_dir + "//insta.ui")[0]
 
 #화면을 띄우는데 사용되는 Class 선언
 class WindowClass(QMainWindow, form_class) :
+
     def __init__(self) :
-        # global likeStat
-        # global commentStat
-        # global followStat
-        # self.likeStat = likeStat
-        # self.commentStat = commentStat
-        # self.followStat = followStat
-        global likeStat
-        global commentStat
-        global followStat
-
-        likeStat = 0
-        commentStat = 0
-        followStat = 0
-
         global random_message_lst
         random_message_lst = []
 
@@ -37,6 +25,8 @@ class WindowClass(QMainWindow, form_class) :
         self.setupUi(self)
         global textBrowser
         textBrowser = self.textBrowser
+
+        self.setWindowTitle('Instagram Bot v1.0.1')
 
         self.start_pushButton.clicked.connect(self.main)
         self.pushButton_add.clicked.connect(self.appendList)
@@ -50,23 +40,26 @@ class WindowClass(QMainWindow, form_class) :
         self.checkBox_comment.stateChanged.connect(self.buttonStat)
         self.checkBox_like.stateChanged.connect(self.buttonStat)
         self.checkBox_follow.stateChanged.connect(self.buttonStat)
-        self.checkBox_comment.stateChanged.connect(self.buttonStat)        
-
+        self.checkBox_comment.stateChanged.connect(self.buttonStat)       
+                    
     def main(self):
         global instagram_id
         global instagram_pwd
         global search_tag
         global start_time
         global delay_time
-##################################################
+        global repeat_cnt
 
+##################################################
         instagram_id = self.lineEdit_id.text()
         instagram_pwd = self.lineEdit_pw.text()
         search_tag = self.lineEdit_tag.text()
         delay_time = self.lineEdit_delay.text()
+        repeat_cnt = self.lineEdit_delay.text()
         print(instagram_id)
         print(instagram_pwd)
         print(search_tag)
+        print(repeat_cnt)
 ##################################################
 
         start_time = time.time() # 시작시간
@@ -74,16 +67,14 @@ class WindowClass(QMainWindow, form_class) :
         search()
 
         global i_cnt
-        for i_cnt in range(400):
+        for i_cnt in range(int(repeat_cnt)):
             try:
                 follow_text = driver.find_element_by_css_selector("._aar2 ._aade").text
                 if follow_text == "팔로우":
+                    self.checkCnt()
                     self.likeEnable()
                     self.commentEnable()
                     self.followEnable()
-                    # like()
-                    # comment()
-                    # follow()
                     # 다음 버튼 누르기
                     driver.find_element_by_css_selector("._aaqg ._abl-").click()
                     print('[' + time.strftime('%H:%M:%S') + ']' ,"다음 게시물 이동 중..\n =======================================")
@@ -134,33 +125,51 @@ class WindowClass(QMainWindow, form_class) :
             self.pushButton_add.setEnabled(False)
             self.pushButton_del.setEnabled(False)
             self.lineEdit_message.setEnabled(False)
-            
+
     def likeEnable(self):
         if self.checkBox_like.isChecked():
-            self.likeStat = 1
-            return like()
-        else:
-            pass
+            like()
             
     def commentEnable(self):
         if self.checkBox_comment.isChecked():
-            self.commentStat = 1
-            return comment()
-        else:
-            pass
-            
+            comment()
+
     def followEnable(self):
         if self.checkBox_follow.isChecked():
-            self.followStat = 1
-            return follow()
-        else:
-            pass            
-
+            follow()
+    
+    def checkCnt(self):
+        global likeStat
+        global commentStat
+        global followStat
+        likeStat = 0
+        commentStat = 0
+        followStat = 0
+        
+        if self.checkBox_like.isChecked() & self.checkBox_comment.isChecked() & self.checkBox_follow.isChecked():
+            likeStat = 1
+            commentStat = 1
+            followStat = 1
+        elif self.checkBox_like.isChecked() & self.checkBox_comment.isChecked():
+            likeStat = 1
+            commentStat = 1
+        elif self.checkBox_like.isChecked() & self.checkBox_follow.isChecked():
+            likeStat = 1
+            followStat = 1
+        elif self.checkBox_comment.isChecked() & self.checkBox_follow.isChecked():
+            commentStat = 1
+            followStat = 1           
+        elif self.checkBox_like.isChecked():
+            likeStat = 1
+        elif self.checkBox_comment.isChecked():
+            commentStat = 1
+        elif self.checkBox_follow.isChecked():
+            followStat = 1
+        
 def logMsg(msg):
     print(msg)
     textBrowser.append(msg)
     QApplication.processEvents()
-    
 
 def login():
     global driver
@@ -193,20 +202,15 @@ def login():
     logMsg('[' + time.strftime('%H:%M:%S') + '] ' + "로그인 성공")
     QApplication.processEvents()
 
-    ###
     print("== 경과시간 ==")
     print(elapsedTime())
-    ###
     
-    
-
 def search():
-    
     url = 'https://www.instagram.com/explore/tags/' + search_tag
     driver.get(url)
     driver.implicitly_wait(15)
     logMsg('[' + time.strftime('%H:%M:%S') + '] ' + "해시태그 검색 중..")
-    time.sleep(5)
+    time.sleep(10)
 
     pic_list = driver.find_elements_by_css_selector("._aagw , ._aanf:nth-child(1) ._a6hd")
     pic_list = list(pic_list)
@@ -223,25 +227,15 @@ def search():
         driver.implicitly_wait(15)
         time.sleep(5)
 
-
 def like():
-
-    # #####
-    # time.sleep(random.uniform(60,80))
-    # #####
     delayTime()
     driver.find_element_by_css_selector("._aamw ._abl-").click() # 좋아요 누르기
     logMsg('[' + time.strftime('%H:%M:%S') + '] ' + "{}번째 좋아요".format(i_cnt+1))
     time.sleep(random.uniform(3,6))
 
 def comment():
-
     driver.find_element_by_css_selector("._aaoc").click()
     time.sleep(random.uniform(5,10))
-
-    # #####
-    # time.sleep(random.uniform(60,90))
-    # #####
 
     random_message = randomMessage() # 랜덤메시지 함수 리턴값 가져오기
 
@@ -249,28 +243,18 @@ def comment():
 
     delayTime()
 
-    # ######
-    # time.sleep(random.uniform(60,80))
-    # ######
-
     driver.find_element_by_css_selector("._aad0").click()
     logMsg('[' + time.strftime('%H:%M:%S') + '] ' + "{0}번째 댓글입력: {1}".format(i_cnt+1, random_message))
     driver.implicitly_wait(15)
     time.sleep(random.uniform(4,6))
 
 def follow():
-    # #####
-    # time.sleep(random.uniform(60,80))
-    # #####
-
     delayTime()
-
     driver.find_element_by_css_selector("._aar2 ._aade").click()
     logMsg('[' + time.strftime('%H:%M:%S') + '] ' + "{0}번째 팔로우".format(i_cnt+1))
     time.sleep(random.uniform(7,12))
 
 def randomMessage():
-
     # random_message_lst = [  
     # "잘 보고갑니다! : )",
     # "피드 잘 보고갑니다! :D",
@@ -285,21 +269,21 @@ def randomMessage():
         random_message = random_message_lst[0]
     else:
         random_message = random_message_lst[randint(0,len(random_message_lst)-1)]
-
     return random_message
 
-
 def delayTime():
+    print(likeStat)
+    print(commentStat)
+    print(followStat)
     if likeStat + commentStat + followStat == 3:
-        print("3개 다 체크됨")
+        print("3개 체크")
         time.sleep(random.uniform(int(delay_time) / 3, int(delay_time) / 3 + 30))
     elif likeStat + commentStat + followStat == 2:
-        print("2개 체크")
+        print("2개 체크")      
         time.sleep(random.uniform(int(delay_time) / 2, int(delay_time) / 2 + 30))
     else:
         print("1개 체크")
         time.sleep(random.uniform(int(delay_time), int(delay_time) + 30))
-
 
 def elapsedTime(): # 경과시간 정보 함수
     elapsed_time = time.time() - start_time
@@ -310,16 +294,13 @@ def elapsedTime(): # 경과시간 정보 함수
         dtime = str(int(d)) + "일 "
     else: 
         dtime = ""
-        
     if h > 0:
         htime = str(int(h)) + "시간 "
     else:
         htime = ""
-        
     if m > 0:
         mtime = str(int(m)) + "분 "
     else:
-
         mtime = ""     
     strTime = dtime + htime + mtime + str(int(s)) + "초"    
     return strTime 
